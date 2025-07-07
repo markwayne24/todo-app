@@ -30,7 +30,7 @@ _Create, update, and manage tasks with due dates and priorities_
 ### Authentication
 
 ![Login Interface](./images/login-interface.png)
-_Secure user authentication with JWT tokens_
+_Secure user authentication with Basic auth_
 
 ### Welcome Email System
 
@@ -40,8 +40,6 @@ _Automated welcome emails sent to new users upon registration_
 The application automatically sends personalized welcome emails to new users when they register. The welcome email includes:
 
 - **Personalized greeting** with the user's name
-- **Welcome message** and platform introduction
-- **Dashboard link** for easy access
 - **Professional design** with responsive layout
 - **Background job processing** via BullMQ queues
 
@@ -53,6 +51,62 @@ The application automatically sends personalized welcome emails to new users whe
 - ✅ **Personalization** with user's name and email
 - ✅ **Error handling** and retry mechanisms
 - ✅ **Real-time monitoring** via queue dashboard
+
+### Login Detection Notifications
+
+![Login Detection Email](./images/login-detected-email.png)
+_Security notifications sent when users log in to their accounts_
+
+The application sends security notifications whenever users log in to their accounts. These emails help users:
+
+- **Track account activity** and detect unauthorized access
+- **Maintain security awareness** of login events
+- **Receive immediate notifications** of successful logins
+
+**Features:**
+
+- ✅ **Real-time notifications** on every login
+- ✅ **Security awareness** for account monitoring
+- ✅ **Professional email design** with login details
+- ✅ **Background processing** via BullMQ queues
+
+### Task Reminder System
+
+![Task Reminder Email](./images/task-reminder-email.png)
+_Daily reminders for tasks due tomorrow_
+
+The system automatically sends daily reminders for tasks that are due the next day, helping users:
+
+- **Stay organized** with upcoming deadlines
+- **Never miss important tasks** with timely reminders
+- **Plan their day** with clear task overviews
+- **Maintain productivity** with proactive notifications
+
+**Features:**
+
+- ✅ **Daily automated reminders** for upcoming tasks
+- ✅ **Personalized task lists** with due dates
+- ✅ **Professional email templates** with task details
+- ✅ **Scheduled processing** via cronjobs service
+
+### Overdue Task Alerts
+
+![Overdue Tasks Email](./images/overdue-tasks-email.png)
+_Notifications for tasks that have passed their due date_
+
+The application sends alerts for tasks that have exceeded their due dates, ensuring users:
+
+- **Never lose track** of overdue tasks
+- **Receive immediate notifications** when tasks are late
+- **Stay accountable** for their commitments
+- **Maintain task visibility** across all overdue items
+
+**Features:**
+
+- ✅ **Automatic overdue detection** and notifications
+- ✅ **Comprehensive task overview** with overdue details
+- ✅ **Professional alert design** with clear urgency indicators
+- ✅ **Scheduled processing** via cronjobs service
 
 ## 🚀 Quick Start with Docker
 
@@ -99,7 +153,13 @@ Download and install [Docker Desktop for Windows](https://docs.docker.com/deskto
 
 ### Environment Setup
 
-1. Create a `.env` file in the root directory:
+1. **Copy the example environment file:**
+
+```bash
+cp .env.example .env
+```
+
+2. **Edit the `.env` file** with your configuration:
 
 #### Email Testing Setup
 
@@ -128,12 +188,7 @@ Download and install [Docker Desktop for Windows](https://docs.docker.com/deskto
 4. **Configure in .env file:**
    - Uncomment the Mailtrap configuration in your `.env` file
    - Replace the placeholder values with your actual Mailtrap credentials
-
-**Alternative: Gmail Setup (for production):**
-
-- Enable 2-factor authentication on your Gmail account
-- Generate an App Password
-- Use the Gmail SMTP settings in the `.env` file
+   - You can replace the placeholder values with your actual credentials of MONGODB_URI
 
 #### Customizing Default User Account
 
@@ -159,6 +214,8 @@ MONGO_PORT=27017
 # MONGODB_URI=mongodb://username:password@host:port/database?authSource=admin
 
 # Redis Configuration
+REDIS_HOST=redis
+REDIS_PORT=6379
 REDIS_PASSWORD=redis123
 
 # Service Ports
@@ -299,7 +356,13 @@ docker run -d --name redis \
 
 ### Environment Configuration
 
-Create a `.env` file with the same configuration as shown in the Docker section above.
+1. **Copy the example environment file:**
+
+```bash
+cp .env.example .env
+```
+
+2. **Edit the `.env` file** with the same configuration as shown in the Docker section above.
 
 ### Run Services
 
