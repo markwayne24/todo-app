@@ -1,25 +1,51 @@
-import { IsString, IsOptional, IsDateString, IsEnum } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsDateString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateTaskDto {
+  @ApiProperty({
+    description: 'The title of the task',
+    example: 'Updated project documentation',
+    required: false,
+  })
   @IsString()
-  title: string;
+  @IsOptional()
+  title?: string;
 
+  @ApiProperty({
+    description: 'The description of the task',
+    example: 'Updated comprehensive documentation for the new API endpoints',
+    required: false,
+  })
   @IsString()
   @IsOptional()
   description?: string;
 
+  @ApiProperty({
+    description: 'The due date for the task (ISO date string)',
+    example: '2024-01-16T10:00:00.000Z',
+    required: false,
+  })
   @IsDateString()
-  scheduledTime: string;
+  @IsOptional()
+  dueDate?: string;
 
+  @ApiProperty({
+    description: 'The priority level of the task',
+    enum: ['low', 'medium', 'high'],
+    example: 'high',
+    required: false,
+  })
   @IsEnum(['low', 'medium', 'high'])
   @IsOptional()
   priority?: 'low' | 'medium' | 'high';
 
-  @IsEnum(['pending', 'completed', 'cancelled', 'in-progress', 'overdue'])
+  @ApiProperty({
+    description: 'The category of the task',
+    enum: ['personal', 'work', 'shopping', 'health', 'education'],
+    example: 'personal',
+    required: false,
+  })
+  @IsEnum(['personal', 'work', 'shopping', 'health', 'education'])
   @IsOptional()
-  status?: 'pending' | 'completed' | 'cancelled' | 'in-progress' | 'overdue';
-
-  @IsString()
-  @IsOptional()
-  category?: string;
+  category?: 'personal' | 'work' | 'shopping' | 'health' | 'education';
 }

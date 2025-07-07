@@ -17,7 +17,6 @@ export class TaskService {
     private readonly logger: PinoLogger,
     private readonly _taskRepository: TaskRepository,
     private readonly _userRepository: UserRepository,
-    private readonly _emailService: EmailService,
   ) {}
 
   async getTasks(userId: string, params: GetTasksDto) {
@@ -35,6 +34,8 @@ export class TaskService {
         this._taskRepository.count({ ...query, userId: new ObjectId(userId) }),
       ]);
 
+      console.log(tasks, 'tasks');
+
       return { data: tasks, total };
     } catch (error: unknown) {
       this.logger.error('Failed to fetch tasks', { error, params });
@@ -46,11 +47,11 @@ export class TaskService {
 
   private _buildQuery(filters: Partial<GetTasksDto>): Filter<Task> {
     const query: Filter<Task> = {};
-    const { status, priority, title, category } = filters;
+    const { status, priority, search, category } = filters;
 
     if (status) query.status = status;
     if (priority) query.priority = priority;
-    if (title) query.title = title;
+    if (search) query.title = search;
     if (category) query.category = category;
 
     return query;
@@ -81,7 +82,7 @@ export class TaskService {
       const taskData: Task = {
         ...createTaskDto,
         userId: new ObjectId(userId),
-        scheduledTime: new Date(createTaskDto.scheduledTime),
+        dueDate: new Date(createTaskDto.dueDate),
         status: 'pending',
         priority: createTaskDto.priority || 'medium',
         createdAt: new Date(),
@@ -137,7 +138,7 @@ export class TaskService {
 
       const data: Partial<Task> = {
         ...params,
-        scheduledTime: new Date(params?.scheduledTime),
+        dueDate: new Date(params?.dueDate),
         updatedAt: new Date(),
       };
 
@@ -145,7 +146,12 @@ export class TaskService {
 
       return {
         message: 'Task updated successfully',
-        data: data,
+        data: {
+          _id: task._id.toString(),
+          userId: task.userId.toString(),
+          createdAt: task.createdAt,
+          updatedAt: task.updatedAt,
+        },
       };
     } catch (error) {
       throw error;
@@ -178,17 +184,15 @@ export class TaskService {
 
       await this._taskRepository.updateOne({ _id: new ObjectId(id) }, data);
 
-      // send email to user
-      await this._emailService.sendTaskStatusUpdateEmail({
-        to: user.email,
-        name: user.name,
-        taskTitle: task.title,
-        status: params.status,
-      });
-
       return {
         message: 'Task status updated successfully',
-        data: data,
+        data: {
+          id: task._id.toString(),
+          email: user.email,
+          name: user.name,
+          taskTitle: task.title,
+          status: params.status,
+        },
       };
     } catch (error) {
       throw error;

@@ -11,7 +11,6 @@ import { UserService } from '../users/users.service';
 import { LoginDto } from './dtos/login.dto';
 import { ObjectId } from 'mongodb';
 import { AUTH_CONFIG } from '@/common/config/auth';
-import { EmailService } from '@/common/services/email';
 
 @Injectable()
 export class AuthService {
@@ -21,7 +20,6 @@ export class AuthService {
     private readonly _userRepository: UserRepository,
     private readonly _userService: UserService,
     private readonly jwtService: JwtService,
-    private readonly _emailService: EmailService,
   ) {}
 
   async validateUser(email: string, pass: string) {
@@ -36,7 +34,7 @@ export class AuthService {
         pass,
         user.password,
       );
-      console.log(isPasswordValid, 'isPasswordValid');
+
       if (user && isPasswordValid) {
         const { password, ...result } = user;
         return result;
@@ -69,11 +67,6 @@ export class AuthService {
 
       const refreshToken = await this.jwtService.signAsync(payload, {
         expiresIn: AUTH_CONFIG.JWT_REFRESH_EXPIRES_IN,
-      });
-
-      await this._emailService.sendLoginAttemptEmail({
-        to: user.email,
-        time: new Date().toISOString(),
       });
 
       return {

@@ -1,24 +1,76 @@
+import {
+  IsOptional,
+  IsEnum,
+  IsString,
+  IsNumber,
+  Min,
+  Max,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger';
 import { PaginatedDto } from '@/common/dtos/paginated.dto';
-import { IsEnum, IsOptional, IsString } from 'class-validator';
 
 export class GetTasksDto extends PaginatedDto {
+  @ApiProperty({
+    description: 'Number of items per page',
+    example: 10,
+    default: 10,
+    required: false,
+  })
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  @Max(100)
   @IsOptional()
-  @IsString()
-  status?: string;
+  limit?: number = 10;
 
+  @ApiProperty({
+    description: 'Filter tasks by status',
+    enum: ['pending', 'in-progress', 'completed', 'cancelled'],
+    example: 'pending',
+    required: false,
+  })
+  @IsEnum(['pending', 'in-progress', 'completed', 'cancelled'])
   @IsOptional()
+  status?: 'pending' | 'in-progress' | 'completed' | 'cancelled';
+
+  @ApiProperty({
+    description: 'Filter tasks by priority',
+    enum: ['low', 'medium', 'high'],
+    example: 'high',
+    required: false,
+  })
   @IsEnum(['low', 'medium', 'high'])
-  priority?: 'low' | 'medium' | 'high' = 'medium';
-
   @IsOptional()
-  @IsString()
-  title?: string;
+  priority?: 'low' | 'medium' | 'high';
 
+  @ApiProperty({
+    description: 'Filter tasks by category',
+    enum: ['personal', 'work', 'shopping', 'health', 'education'],
+    example: 'work',
+    required: false,
+  })
+  @IsEnum(['personal', 'work', 'shopping', 'health', 'education'])
   @IsOptional()
-  @IsString()
-  sort?: string;
+  category?: 'personal' | 'work' | 'shopping' | 'health' | 'education';
 
-  @IsOptional()
+  @ApiProperty({
+    description: 'Search tasks by title or description',
+    example: 'project',
+    required: false,
+  })
   @IsString()
-  category?: string;
+  @IsOptional()
+  search?: string;
+
+  @ApiProperty({
+    description: 'Sort order (asc or desc)',
+    enum: ['asc', 'desc'],
+    example: 'desc',
+    default: 'desc',
+    required: false,
+  })
+  @IsEnum(['asc', 'desc'])
+  @IsOptional()
+  sort?: 'asc' | 'desc' = 'desc';
 }

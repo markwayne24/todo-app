@@ -5,6 +5,8 @@ import { LoggerModule } from 'nestjs-pino';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TaskModule } from './tasks/tasks.module';
+import { RedisConfig } from '@/common/config/redis';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [
@@ -20,6 +22,7 @@ import { TaskModule } from './tasks/tasks.module';
       },
     }),
     ConfigModule,
+    BullModule.forRoot(RedisConfig),
     ScheduleModule.forRoot(),
     TaskModule,
   ],

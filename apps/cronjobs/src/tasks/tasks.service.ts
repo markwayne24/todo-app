@@ -7,6 +7,17 @@ import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ObjectId } from 'mongodb';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
+import {
+  QUEUE_TASKS,
+  TASK_JOBS_NAME,
+} from '@/common/queues/tasks/tasks.constants';
+import {
+  SendTaskReminderType,
+  SendTaskOverdueType,
+  UpdateOverdueStatusType,
+} from '@/common/queues/tasks/tasks.types';
 
 interface TaskWithUser {
   userId: string;
@@ -33,6 +44,8 @@ export class TaskService {
     private readonly userRepository: UserRepository,
     private readonly taskRepository: TaskRepository,
     private readonly emailService: EmailService,
+    @InjectQueue(QUEUE_TASKS.name)
+    private readonly _taskQueue: Queue,
   ) {}
 
   // Run every day at 12:00 AM
@@ -50,9 +63,9 @@ export class TaskService {
 
       this.logger.info(`Found ${tasks.length} users with tasks due tomorrow`);
 
-      await this.sendTaskReminders(tasks, 'reminder');
+      await this.queueTaskReminders(tasks, 'reminder');
     } catch (error) {
-      this.logger.error('Error sending task reminders', { error });
+      this.logger.error('Error queuing task reminders', { error });
     }
   }
 
@@ -70,10 +83,10 @@ export class TaskService {
 
       this.logger.info(`Found ${tasks.length} users with overdue tasks`);
 
-      await this.sendTaskReminders(tasks, 'overdue');
-      await this.updateOverdueTaskStatuses(tasks);
+      await this.queueTaskReminders(tasks, 'overdue');
+      await this.queueUpdateOverdueStatuses(tasks);
     } catch (error) {
-      this.logger.error('Error processing overdue tasks', { error });
+      this.logger.error('Error queuing overdue tasks', { error });
     }
   }
 
@@ -84,7 +97,7 @@ export class TaskService {
     const pipeline = [
       {
         $match: {
-          scheduledTime: {
+          dueDate: {
             $gte: dateRange.start,
             $lte: dateRange.end,
           },
@@ -111,7 +124,7 @@ export class TaskService {
             $push: {
               _id: '$_id',
               taskTitle: '$title',
-              dueDate: '$scheduledTime',
+              dueDate: '$dueDate',
               status: '$status',
             },
           },
@@ -131,58 +144,66 @@ export class TaskService {
     return (await this.taskRepository.aggregate(pipeline)) as TaskWithUser[];
   }
 
-  private async sendTaskReminders(
+  private async queueTaskReminders(
     tasks: TaskWithUser[],
     type: 'reminder' | 'overdue',
   ) {
-    const emailPromises = tasks.map(async (task) => {
+    const queuePromises = tasks.map(async (task) => {
       try {
-        const emailData = {
-          to: task.email,
+        const jobData: SendTaskReminderType | SendTaskOverdueType = {
+          userId: task.userId,
           name: task.name,
-          tasks: task.tasks.map((item) => ({
-            taskTitle: item.taskTitle,
-            dueDate: item.dueDate,
-          })),
+          email: task.email,
+          tasks: task.tasks,
         };
 
-        if (type === 'reminder') {
-          await this.emailService.sendTaskReminder(emailData);
-        } else {
-          await this.emailService.sendTaskOverdueEmail(emailData);
-        }
+        const jobName =
+          type === 'reminder'
+            ? TASK_JOBS_NAME.SEND_TASK_REMINDER
+            : TASK_JOBS_NAME.SEND_TASK_OVERDUE;
+
+        await this._taskQueue.add(jobName, jobData);
 
         this.logger.info(
-          `Sent ${type} email to ${task.email} for ${task.tasks.length} tasks`,
+          `Queued ${type} email job for ${task.email} with ${task.tasks.length} tasks`,
         );
       } catch (error) {
-        this.logger.error(`Failed to send ${type} email to ${task.email}`, {
-          error,
-        });
+        this.logger.error(
+          `Failed to queue ${type} email job for ${task.email}`,
+          {
+            error,
+          },
+        );
       }
     });
 
-    await Promise.allSettled(emailPromises);
+    await Promise.allSettled(queuePromises);
   }
 
-  private async updateOverdueTaskStatuses(tasks: TaskWithUser[]) {
-    const updatePromises = tasks.flatMap((userTask) =>
-      userTask.tasks.map(async (task) => {
-        try {
-          await this.taskRepository.updateOne(
-            { _id: new ObjectId(task._id) },
-            { status: 'overdue' },
-          );
-          this.logger.info(`Updated task ${task._id} to overdue status`);
-        } catch (error) {
-          this.logger.error(`Failed to update task ${task._id} status`, {
-            error,
-          });
-        }
-      }),
-    );
+  private async queueUpdateOverdueStatuses(tasks: TaskWithUser[]) {
+    try {
+      // Collect all tasks from all users
+      const allTasks = tasks.flatMap((userTask) => userTask.tasks);
 
-    await Promise.allSettled(updatePromises);
+      if (allTasks.length === 0) {
+        this.logger.info('No tasks to update to overdue status');
+        return;
+      }
+
+      const jobData: UpdateOverdueStatusType = {
+        tasks: allTasks,
+      };
+
+      await this._taskQueue.add(TASK_JOBS_NAME.UPDATE_OVERDUE_STATUS, jobData);
+
+      this.logger.info(
+        `Queued update overdue status job for ${allTasks.length} tasks`,
+      );
+    } catch (error) {
+      this.logger.error('Failed to queue update overdue status job', {
+        error,
+      });
+    }
   }
 
   private getTomorrowDateRange(): DateRange {

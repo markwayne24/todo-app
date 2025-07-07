@@ -125,7 +125,7 @@ export class EmailService {
 
       console.log(templatePath, 'templatePath');
 
-      let html = await fs.promises.readFile(templatePath, 'utf-8');
+      const html = await fs.promises.readFile(templatePath, 'utf-8');
 
       const template = Handlebars.compile(html);
       return template(data);

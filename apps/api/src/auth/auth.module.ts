@@ -9,6 +9,8 @@ import { UserRepository } from '@/common/repositories/users/users.repository';
 import { MongoModule } from '@/databases/mongo/mongo.module';
 import { UserService } from '../users/users.service';
 import { EmailModule } from '@/common/services/email';
+import { QUEUE_AUTH } from '@/common/queues/auth/auth.constants';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [
@@ -19,7 +21,7 @@ import { EmailModule } from '@/common/services/email';
       secret: AUTH_CONFIG.JWT_SECRET_KEY,
       signOptions: { expiresIn: AUTH_CONFIG.JWT_EXPIRES_IN },
     }),
-
+    BullModule.registerQueue(QUEUE_AUTH),
     UserModule,
     EmailModule,
   ],

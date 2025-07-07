@@ -6,7 +6,7 @@ export type Task = {
   title: string;
   description?: string;
   status: string;
-  scheduledTime: Date;
+  dueDate: Date;
   priority: 'low' | 'medium' | 'high';
   category?: string;
   createdAt?: Date;
