@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Task Reminder</title>
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f7;
+      font-family: Arial, sans-serif;
+    "
+  >
+    <table
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      role="presentation"
+      style="background-color: #f4f4f7; padding: 40px 0"
+    >
+      <tr>
+        <td align="center">
+          <table
+            width="100%"
+            cellpadding="0"
+            cellspacing="0"
+            role="presentation"
+            style="
+              max-width: 600px;
+              background-color: #ffffff;
+              border-radius: 8px;
+              padding: 40px;
+              box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            "
+          >
+            <tr>
+              <td style="text-align: left">
+                <h1 style="color: #fa541c; font-size: 24px; margin-top: 0">
+                  ⏰ Task Reminder
+                </h1>
+                <p style="font-size: 16px; color: #333333; line-height: 1.5">
+                  Hello {{name}},
+                </p>
+                <p style="font-size: 16px; color: #333333; line-height: 1.5">
+                  This is a quick reminder that you have a task coming up:
+                </p>
+
+                <div
+                  style="
+                    background-color: #fff7e6;
+                    border-left: 4px solid #fa8c16;
+                    padding: 16px;
+                    border-radius: 4px;
+                    margin: 20px 0;
+                  "
+                >
+                  <p style="margin: 0; font-size: 16px; color: #333">
+                    <strong>Task:</strong> {{taskTitle}}<br />
+                    <strong>Due:</strong> {{dueDate}}
+                  </p>
+                </div>
+
+                <p style="font-size: 14px; color: #333333; line-height: 1.5">
+                  Stay focused and keep up the great work. You've got this 💪
+                </p>
+              </td>
+            </tr>
+          </table>
+          <p
+            style="
+              margin-top: 20px;
+              font-size: 12px;
+              color: #999999;
+              text-align: center;
+            "
+          >
+            You’re receiving this reminder because a task was scheduled in your
+            account.
+          </p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
