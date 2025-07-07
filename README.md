@@ -613,22 +613,6 @@ The application sends various email notifications:
 pnpm run dev:api          # Start API service in watch mode
 pnpm run dev:worker       # Start Worker service in watch mode
 pnpm run dev:cronjobs     # Start Cronjobs service in watch mode
-
-# Building
-pnpm run build            # Build all services
-pnpm run build:api        # Build API service only
-pnpm run build:worker     # Build Worker service only
-pnpm run build:cronjobs   # Build Cronjobs service only
-
-# Testing
-pnpm run test             # Run unit tests
-pnpm run test:watch       # Run tests in watch mode
-pnpm run test:cov         # Run tests with coverage
-pnpm run test:e2e         # Run end-to-end tests
-
-# Code Quality
-pnpm run lint             # Run ESLint
-pnpm run format           # Format code with Prettier
 ```
 
 ### Project Structure
