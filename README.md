@@ -22,11 +22,6 @@ _Interactive API documentation with Swagger UI_
 ![BullMQ Dashboard](./images/queue-dashboard.png)
 _Real-time monitoring of background jobs and queues_
 
-### Task Management
-
-![Task Management Interface](./images/task-management.png)
-_Create, update, and manage tasks with due dates and priorities_
-
 ### Authentication
 
 ![Login Interface](./images/login-interface.png)
