@@ -246,6 +246,8 @@ DEFAULT_USER_PASSWORD=password123
 
 1. **Start all services:**
 
+This command will run all the services and containers in one go, including the API service, Worker service, Cronjobs service, MongoDB database, and Redis cache.
+
 ```bash
 docker-compose up -d
 ```
