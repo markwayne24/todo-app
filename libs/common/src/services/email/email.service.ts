@@ -3,6 +3,7 @@ import * as nodemailer from 'nodemailer';
 import * as fs from 'fs';
 import * as path from 'path';
 import { EMAIL_CONFIG } from '@/common/config/email';
+import Handlebars from 'handlebars';
 
 interface WelcomeEmailParams {
   to: string;
@@ -17,14 +18,18 @@ interface LoginAttemptEmailParams {
 interface TaskReminderEmailParams {
   to: string;
   name: string;
-  taskTitle: string;
-  dueDate: string;
+  tasks: { taskTitle: string; dueDate: Date }[];
+}
+
+interface TaskOverdueEmailParams {
+  to: string;
+  name: string;
+  tasks: { taskTitle: string; dueDate: Date }[];
 }
 
 @Injectable()
 export class EmailService {
   private transporter: nodemailer.Transporter;
-  private readonly templatesPath = path.join(__dirname, 'templates');
 
   constructor() {
     this.transporter = nodemailer.createTransport({
@@ -64,12 +69,45 @@ export class EmailService {
   async sendTaskReminder(params: TaskReminderEmailParams) {
     const html = await this.loadTemplate('task-reminder', {
       name: params.name,
-      taskTitle: params.taskTitle,
-      dueDate: params.dueDate,
+      tasks: params.tasks,
     });
     await this.transporter.sendMail({
       to: params.to,
-      subject: `Task Reminder: ${params.taskTitle}`,
+      subject: `Task Reminder`,
+      html,
+      from: EMAIL_CONFIG.FROM,
+    });
+  }
+
+  async sendTaskOverdueEmail(params: TaskOverdueEmailParams) {
+    const html = await this.loadTemplate('task-overdue', {
+      name: params.name,
+      tasks: params.tasks,
+    });
+    await this.transporter.sendMail({
+      to: params.to,
+      subject: `Overdue Tasks Alert`,
+      html,
+      from: EMAIL_CONFIG.FROM,
+    });
+  }
+
+  async sendTaskStatusUpdateEmail(params: {
+    to: string;
+    name: string;
+    taskTitle: string;
+    status: string;
+  }) {
+    const html = await this.loadTemplate('tasks-status-update', {
+      name: params.name,
+      taskTitle: params.taskTitle,
+      status: params.status,
+      updatedAt: new Date().toISOString(),
+    });
+
+    await this.transporter.sendMail({
+      to: params.to,
+      subject: `Task Updated: ${params.taskTitle} → ${params.status}`,
       html,
       from: EMAIL_CONFIG.FROM,
     });
@@ -89,12 +127,8 @@ export class EmailService {
 
       let html = await fs.promises.readFile(templatePath, 'utf-8');
 
-      // Replace template variables
-      html = html.replace(/\{\{(\w+)\}\}/g, (match, key) => {
-        return data[key] !== undefined ? String(data[key]) : match;
-      });
-
-      return html;
+      const template = Handlebars.compile(html);
+      return template(data);
     } catch (error) {
       return '<p>Email template not found</p>';
     }

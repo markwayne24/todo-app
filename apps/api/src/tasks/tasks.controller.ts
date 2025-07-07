@@ -17,6 +17,7 @@ import { CreateTaskDto } from './dtos/create-task.dto';
 import { UpdateTaskDto } from './dtos/update-task.dto';
 import { GetTasksDto } from './dtos/get-tasks.dto';
 import { AuthGuard } from '../auth/guards/auth.guard';
+import { UpdateTaskStatusDto } from './dtos/update-task-status.dto';
 
 @UseGuards(AuthGuard)
 @Controller('tasks')
@@ -50,5 +51,15 @@ export class TaskController {
   async remove(@Param('id') id: string, @Req() req: any) {
     const userId = req?.user?.sub;
     return this.taskService.remove(userId, id);
+  }
+
+  @Post(':id/status')
+  async updateStatus(
+    @Param('id') id: string,
+    @Body() updateTaskStatusDto: UpdateTaskStatusDto,
+    @Req() req: any,
+  ) {
+    const userId = req?.user?.sub;
+    return this.taskService.updateStatus(userId, id, updateTaskStatusDto);
   }
 }

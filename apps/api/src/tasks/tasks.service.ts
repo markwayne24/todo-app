@@ -7,6 +7,8 @@ import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { UpdateTaskDto } from './dtos/update-task.dto';
 import { GetTasksDto } from './dtos/get-tasks.dto';
 import { UserRepository } from '@/common/repositories/users/users.repository';
+import { UpdateTaskStatusDto } from './dtos/update-task-status.dto';
+import { EmailService } from '@/common/services/email';
 
 @Injectable()
 export class TaskService {
@@ -15,6 +17,7 @@ export class TaskService {
     private readonly logger: PinoLogger,
     private readonly _taskRepository: TaskRepository,
     private readonly _userRepository: UserRepository,
+    private readonly _emailService: EmailService,
   ) {}
 
   async getTasks(userId: string, params: GetTasksDto) {
@@ -142,6 +145,49 @@ export class TaskService {
 
       return {
         message: 'Task updated successfully',
+        data: data,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateStatus(userId: string, id: string, params: UpdateTaskStatusDto) {
+    try {
+      const user = await this._userRepository.findOne({
+        _id: new ObjectId(userId),
+      });
+
+      if (!user) {
+        throw new NotFoundException(`User with ID ${userId} not found`);
+      }
+
+      const task = await this._taskRepository.findOne({
+        _id: new ObjectId(id),
+        userId: new ObjectId(userId),
+      });
+
+      if (!task) {
+        throw new NotFoundException(`Task with ID ${id} not found`);
+      }
+
+      const data: Partial<Task> = {
+        ...params,
+        updatedAt: new Date(),
+      };
+
+      await this._taskRepository.updateOne({ _id: new ObjectId(id) }, data);
+
+      // send email to user
+      await this._emailService.sendTaskStatusUpdateEmail({
+        to: user.email,
+        name: user.name,
+        taskTitle: task.title,
+        status: params.status,
+      });
+
+      return {
+        message: 'Task status updated successfully',
         data: data,
       };
     } catch (error) {
