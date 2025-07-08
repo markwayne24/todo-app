@@ -540,7 +540,6 @@ Authorization: Bearer <your-jwt-token>
 - **Description:** Get user's tasks with optional filtering
 - **Authentication:** Required
 - **Query Parameters:**
-  - `page` (number): Page number for pagination
   - `limit` (number): Number of items per page
   - `status` (string): Filter by task status
   - `priority` (string): Filter by priority (low, medium, high)
